@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  mongo:
+    # perfroms docker pull
+    image: mongo:latest
+    # performs docker run
+    container_name: mongo-cont
+    ports:
+      - "27016:27017"
+    networks:
+      - ecommerce-network
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./server
+    container_name: backend-cont
+    ports:
+      - "8001:8000"
+    depends_on:
+      - mongo
+    environment:
+      CLIENT_URL: http://localhost:3001
+      MONGODB_URI: mongodb://mongo-cont:27017/e-commerce-platform
+      JWT_SECRET: 3b6a8fc785a5d1e24bcf9bfb16f433f001bfe5755f2a8f5f37c9f61a4f7f4e1b
+    networks:
+      - ecommerce-network
+
+  frontend:
+    build: ./client
+    container_name: frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8001
+    networks:
+      - ecommerce-network
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
